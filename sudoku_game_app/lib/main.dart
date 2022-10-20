@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'dart:math';
 
 
 
@@ -26,80 +27,171 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> {
-  // The random solution sudoku Array
-  List<int> cellsSolution = [
-    5, 3, 4, 6, 7, 8, 9, 1, 2,
-    6, 7, 2, 1, 9, 5, 3, 4, 8,
-    1, 9, 8, 3, 4, 2, 5, 6, 7,
-
-    8, 5, 9, 7, 6, 1, 4, 2, 3,
-    4, 2, 6, 8, 5, 3, 7, 9, 1,
-    7, 1, 3, 9, 2, 4, 8, 5, 6,
-
-    9, 6, 1, 5, 3, 7, 2, 8, 4,
-    2, 8, 7, 4, 1, 9, 6, 3, 5,
-    3, 4, 5, 2, 8, 6, 1, 7, 9
-  ];
-
-  // The puzzel based on cellsSolution (delete some cells randomly)
-  List<int> cellsPuzzel = [
-    5, 3, 4, 0, 7, 8, 9, 1, 2,
-    6, 7, 2, 1, 9, 5, 3, 4, 8,
-    1, 0, 8, 0, 4, 2, 5, 6, 7,
-
-    8, 0, 9, 7, 6, 1, 4, 2, 3,
-    4, 2, 6, 8, 5, 3, 7, 9, 0,
-    7, 0, 3, 9, 2, 4, 8, 5, 6,
-
-    9, 6, 1, 5, 3, 7, 2, 8, 4,
-    2, 0, 7, 4, 0, 0, 6, 3, 0,
-    3, 4, 5, 2, 8, 6, 1, 0, 0
-  ];
-
-
-//function to check if the cell is a blank and can be filled later.
-  bool isBlank(index){
-    for(var i=0;i<cellsPuzzel.length;i++){
-        if(cellsPuzzel[index] == 0){
-          return true;
-        }
-    }
-    return false;
-  }
-
-  // function to check if cellsPuzzel is filled without any ''.
-  bool isPuzzelFilled(){
-    if(cellsPuzzel.contains(0)){
-      return false; // this means there is cells unfilled
-    }
-    else{
-      return true; // this means all cells are filled
-    }
-  }
-
-
-  // Check if two lists are equal, and when true then you won the game
-  bool areListsEqual(var list1, var list2) {
-    // check if both are lists
-    if(!(list1 is List && list2 is List)
-        // check if both have same length
-        || list1.length!=list2.length) {
-      return false;
-    }
-    // check if elements are equal
-    for(int i=0;i<list1.length;i++) {
-      if(list1[i]!=list2[i]) {
-        return false;
-      }
-    }
-
-    return true;
-  }
-
-
 
   @override
   Widget build(BuildContext context) {
+
+    /* Random Array Generator */
+    // var GRID_TO_SOLVE = [
+    //   [Random().nextInt(9)+1,0,0,0,0,0,0,0,0],
+    //   [0,0,0,0,Random().nextInt(9)+1,0,0,0,0],
+    //   [0,0,0,0,0,0,0,Random().nextInt(9)+1,0],
+    //   [0,Random().nextInt(9)+1,0,0,0,0,0,0,0],
+    //   [0,0,0,Random().nextInt(9)+1,0,0,0,0,0],
+    //   [0,0,0,0,0,0,0,0,Random().nextInt(9)+1],
+    //   [0,0,Random().nextInt(9)+1,0,0,0,0,0,0],
+    //   [0,0,0,0,0,Random().nextInt(9)+1,0,0,0],
+    //   [Random().nextInt(9)+1,0,0,0,0,0,0,0,0],
+    // ];
+
+    var GRID_TO_SOLVE = [
+      [Random().nextInt(9)+1,0,0,0,0,0,0,0,0],
+      [0,0,0,0,0,0,0,0,0],
+      [0,0,0,0,0,0,0,0,0],
+      [Random().nextInt(9)+1,0,0,0,0,0,0,0,0],
+      [0,0,0,0,0,0,0,0,0],
+      [0,0,0,0,0,0,0,0,Random().nextInt(9)+1],
+      [0,0,0,0,0,0,0,0,0],
+      [0,0,0,0,0,0,0,0,0],
+      [0,0,0,0,0,0,0,0,Random().nextInt(9)+1],
+    ];
+
+    print(GRID_TO_SOLVE);
+
+
+
+    // we check if a possible number is already in a row
+    bool isInRow(List<List> board,int row, int number) {
+      for (int i = 0; i < 9; i++)
+        if (board[row][i] == number)
+          return true;
+
+      return false;
+    }
+
+// we check if a possible number is already in a column
+    bool isInCol(List<List> board,int col, int number) {
+      for (int i = 0; i < 9; i++)
+        if (board[i][col] == number)
+          return true;
+
+      return false;
+    }
+
+// we check if a possible number is in its 3x3 box
+    bool isInBox(List<List> board,int row, int col, int number) {
+      int r = row - row % 3;
+      int c = col - col % 3;
+
+      for (int i = r; i < r + 3; i++)
+        for (int j = c; j < c + 3; j++)
+          if (board[i][j] == number)
+            return true;
+
+      return false;
+    }
+
+// combined method to check if a number possible to a row,col position is ok
+    bool isOk(List<List> board,int row, int col, int number) {
+      return !isInRow(board,row, number)  &&  !isInCol(board,col, number)  &&  !isInBox(board,row, col, number);
+    }
+
+// Solve method. We will use a recursive BackTracking algorithm.
+    bool solve(List<List> board) {
+      for (int row = 0; row < 9; row++) {
+        for (int col = 0; col < 9; col++) {
+          // we search an empty cell
+          if (board[row][col] == 0) {
+            // we try possible numbers
+            for (int number = 1; number <= 9; number++) {
+              if (isOk(board,row, col, number)) {
+                // number ok. it respects sudoku constraints
+                board[row][col] = number;
+                if (solve(board)) { // we start backtracking recursively
+                  return true;
+                } else { // if not a solution, we empty the cell and we continue
+                  board[row][col] = 0;
+                }
+              }
+
+            }
+            return false; // we return fals
+          }
+        }
+      }
+      return true; // sudoku solved
+    }
+    print(solve(GRID_TO_SOLVE));
+    print(GRID_TO_SOLVE);
+
+    List<int> answer = [];
+    for(int r=0;r<9;r++)
+      for(int c=0;c<9;c++){
+        answer.add(GRID_TO_SOLVE[r][c]);}
+    print(answer);
+    List<int> answer2 = [];
+
+    for(int r=0;r<9;r++)
+      for(int c=0;c<9;c++){
+        answer2.add(GRID_TO_SOLVE[r][c]);}
+
+    List<int> question = answer;
+    for(int i=0;i<20;i++){
+      question[Random().nextInt(81)]=0;
+    }
+    print(question);
+    /**************************/
+
+    /******* MY Section ******/
+
+    // The random solution sudoku Array
+    List<int> cellsSolution = answer2;
+    print('cellsSolution');
+    print(cellsSolution);
+
+    // The puzzel based on cellsSolution (delete some cells randomly)
+    List<int> cellsPuzzel = question;
+    print('cellsPuzzel');
+    print(cellsPuzzel);
+
+
+//function to check if the cell is a blank and can be filled later.
+    bool isBlank(index){
+      for(var i=0;i<cellsPuzzel.length;i++){
+        if(cellsPuzzel[index] == 0){
+          return true;
+        }
+      }
+      return false;
+    }
+
+    // function to check if cellsPuzzel is filled without any ''.
+    bool isPuzzelFilled(){
+      if(cellsPuzzel.contains(0)){
+        return false; // this means there is cells unfilled
+      }
+      else{
+        return true; // this means all cells are filled
+      }
+    }
+
+    // Check if two lists are equal, and when true then you won the game
+    bool areListsEqual(List<int> list1, List<int> list2) {
+      // check if both are lists
+      if(!(list1 is List && list2 is List)
+          // check if both have same length
+          || list1.length!=list2.length) {
+        return false;
+      }
+      // check if elements are equal
+      for(int i=0;i<list1.length;i++) {
+        if(list1[i]!=list2[i]) {
+          return false;
+        }
+      }
+      return true;
+    }
+
 
     return Scaffold(
       appBar: AppBar(title: Text('Sudoku Game',),),
@@ -253,4 +345,5 @@ bool toBeColored(index){
 }
   return false;
 }
+
 
