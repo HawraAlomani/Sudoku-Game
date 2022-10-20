@@ -55,6 +55,16 @@ class _MyHomePageState extends State<MyHomePage> {
     '3', '4', '5', '2', '8', '6', '', '', ''
   ];
 
+  // Controller to retrieve the input value from textField
+  final myController = TextEditingController();
+
+  @override
+  void dispose() {
+    // other dispose methods
+    myController.dispose();
+    super.dispose();
+  }
+
 //function to check if the cell is a blank and can be filled later.
   bool isBlank(index){
     for(var i=0;i<cellsPuzzel.length;i++){
@@ -65,8 +75,40 @@ class _MyHomePageState extends State<MyHomePage> {
     return false;
   }
 
+  // function to check if cellsPuzzel is filled without any ''.
+  bool isPuzzelFilled(){
+    if(cellsPuzzel.contains('')){
+      return false; // this means there is cells unfilled
+    }
+    else{
+      return true; // this means all cells are filled
+    }
+  }
+
+
+  // Check if two lists are equal, and when true then you won the game
+  bool areListsEqual(var list1, var list2) {
+    // check if both are lists
+    if(!(list1 is List && list2 is List)
+        // check if both have same length
+        || list1.length!=list2.length) {
+      return false;
+    }
+    // check if elements are equal
+    for(int i=0;i<list1.length;i++) {
+      if(list1[i]!=list2[i]) {
+        return false;
+      }
+    }
+
+    return true;
+  }
+
+
+
   @override
   Widget build(BuildContext context) {
+
     return Scaffold(
       appBar: AppBar(title: Text('Sudoku Game',),),
       body: Container(
@@ -82,6 +124,11 @@ class _MyHomePageState extends State<MyHomePage> {
                   itemBuilder: (BuildContext context, int index){
                     if(isBlank(index)){
                       return TextField(
+                        onChanged: (text){
+                          print('First text field: $text in $index');
+                          cellsPuzzel[index]= text; //replace '' with input value
+                          // print(cellsPuzzel);
+                          },
                         enabled: isBlank(index),
                         decoration: InputDecoration(filled: toBeColored(index),
                             fillColor: Colors.black12,
@@ -114,14 +161,77 @@ class _MyHomePageState extends State<MyHomePage> {
                 Padding(
                   padding: const EdgeInsets.only(right: 35.0),
                   child: ElevatedButton(
-                    onPressed: null, /* if all cells are filled then this button can be pressed.*/
+                    onPressed:() {
+                      // Check if all cells are filled before checking the answer.
+                      if(isPuzzelFilled()){
+
+                        // check if the two lists are equal
+                        if (areListsEqual(cellsPuzzel, cellsSolution)){
+                          print('you win');
+                          showDialog(
+                            context: context,
+                            builder: (context) => AlertDialog(
+                              title: Text('you won'),
+                              content: Text('Congrats 👏, you solved the puzzel.'),
+                              actions: [
+                                ElevatedButton(
+                                    onPressed: () {
+                                      Navigator.pop(context);
+                                    },
+                                    child: Text('Go Back'))
+                              ],
+                            ),
+                          );
+                        }
+                        else{
+                          showDialog(
+                            context: context,
+                            builder: (context) => AlertDialog(
+                              title: Text('you lost'),
+                              content: Text('you lost the game, try again !! '),
+                              actions: [
+                                ElevatedButton(
+                                    onPressed: () {
+                                      Navigator.pop(context);
+                                    },
+                                    child: Text('Go Back'))
+                              ],
+                            ),
+                          );
+                          print('you lose, try again');
+                        }
+
+                      }
+                      else{
+                        showDialog(
+                          context: context,
+                          builder: (context) => AlertDialog(
+                            title: Text('not complete solution'),
+                            content: Text('must fill all cells with numbers'),
+                            actions: [
+                              ElevatedButton(
+                                  onPressed: () {
+                                    Navigator.pop(context);
+                                  },
+                                  child: Text('Go Back'))
+                            ],
+                          ),
+                        );
+
+                      }
+
+                    }, /* if all cells are filled then this button can be pressed.*/
                     child: const Text('Check Solution'),
                   ),
                 ),
                 Padding(
                   padding: const EdgeInsets.only(left: 35.0),
                   child: ElevatedButton(
-                    onPressed: () {}, /* to generate a new Sudoku. */
+                    onPressed: () {
+                      setState(() {
+
+                      });
+                    }, /* to generate a new Sudoku. */
                     child: const Text('Refresh'),
                   ),
                 ),
