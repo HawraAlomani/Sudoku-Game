@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import 'dart:math';
+
+
 
 void main() {
   runApp(const MyApp());
@@ -26,49 +27,40 @@ class MyHomePage extends StatefulWidget {
 
 class _MyHomePageState extends State<MyHomePage> {
   // The random solution sudoku Array
-  List<String> cellsSolution = [
-    '5', '3', '4', '6', '7', '8', '9', '1', '2',
-    '6', '7', '2', '1', '9', '5', '3', '4', '8',
-    '1', '9', '8', '3', '4', '2', '5', '6', '7',
+  List<int> cellsSolution = [
+    5, 3, 4, 6, 7, 8, 9, 1, 2,
+    6, 7, 2, 1, 9, 5, 3, 4, 8,
+    1, 9, 8, 3, 4, 2, 5, 6, 7,
 
-    '8', '5', '9', '7', '6', '1', '4', '2', '3',
-    '4', '2', '6', '8', '5', '3', '7', '9', '1',
-    '7', '1', '3', '9', '2', '4', '8', '5', '6',
+    8, 5, 9, 7, 6, 1, 4, 2, 3,
+    4, 2, 6, 8, 5, 3, 7, 9, 1,
+    7, 1, 3, 9, 2, 4, 8, 5, 6,
 
-    '9', '6', '1', '5', '3', '7', '2', '8', '4',
-    '2', '8', '7', '4', '1', '9', '6', '3', '5',
-    '3', '4', '5', '2', '8', '6', '1', '7', '9'
+    9, 6, 1, 5, 3, 7, 2, 8, 4,
+    2, 8, 7, 4, 1, 9, 6, 3, 5,
+    3, 4, 5, 2, 8, 6, 1, 7, 9
   ];
 
   // The puzzel based on cellsSolution (delete some cells randomly)
-  List<String> cellsPuzzel = [
-    '5', '3', '4', '6', '7', '8', '', '1', '2',
-    '', '7', '', '1', '9', '', '3', '', '8',
-    '1', '9', '', '3', '4', '2', '5', '6', '',
+  List<int> cellsPuzzel = [
+    5, 3, 4, 0, 7, 8, 9, 1, 2,
+    6, 7, 2, 1, 9, 5, 3, 4, 8,
+    1, 0, 8, 0, 4, 2, 5, 6, 7,
 
-    '', '5', '', '7', '6', '1', '4', '2', '3',
-    '', '2', '', '8', '', '3', '7', '9', '',
-    '7', '1', '3', '', '2', '4', '8', '5', '6',
+    8, 0, 9, 7, 6, 1, 4, 2, 3,
+    4, 2, 6, 8, 5, 3, 7, 9, 0,
+    7, 0, 3, 9, 2, 4, 8, 5, 6,
 
-    '9', '6', '1', '5', '3', '7', '', '', '4',
-    '', '8', '', '', '1', '9', '', '3', '5',
-    '3', '4', '5', '2', '8', '6', '', '', ''
+    9, 6, 1, 5, 3, 7, 2, 8, 4,
+    2, 0, 7, 4, 0, 0, 6, 3, 0,
+    3, 4, 5, 2, 8, 6, 1, 0, 0
   ];
 
-  // Controller to retrieve the input value from textField
-  final myController = TextEditingController();
-
-  @override
-  void dispose() {
-    // other dispose methods
-    myController.dispose();
-    super.dispose();
-  }
 
 //function to check if the cell is a blank and can be filled later.
   bool isBlank(index){
     for(var i=0;i<cellsPuzzel.length;i++){
-        if(cellsPuzzel[index] == ''){
+        if(cellsPuzzel[index] == 0){
           return true;
         }
     }
@@ -77,7 +69,7 @@ class _MyHomePageState extends State<MyHomePage> {
 
   // function to check if cellsPuzzel is filled without any ''.
   bool isPuzzelFilled(){
-    if(cellsPuzzel.contains('')){
+    if(cellsPuzzel.contains(0)){
       return false; // this means there is cells unfilled
     }
     else{
@@ -126,7 +118,7 @@ class _MyHomePageState extends State<MyHomePage> {
                       return TextField(
                         onChanged: (text){
                           print('First text field: $text in $index');
-                          cellsPuzzel[index]= text; //replace '' with input value
+                          cellsPuzzel[index]= int.parse(text); //replace 0 with input value
                           // print(cellsPuzzel);
                           },
                         enabled: isBlank(index),
@@ -144,7 +136,7 @@ class _MyHomePageState extends State<MyHomePage> {
                           color:  toBeColored(index)?Colors.black12: Colors.transparent,
                           child: Center(
                             child: Text(
-                              cellsPuzzel[index],
+                              cellsPuzzel[index].toString(),
                             ),
                           ),
                         ),
@@ -228,9 +220,11 @@ class _MyHomePageState extends State<MyHomePage> {
                   padding: const EdgeInsets.only(left: 35.0),
                   child: ElevatedButton(
                     onPressed: () {
-                      setState(() {
-
-                      });
+                      Navigator.pushAndRemoveUntil(
+                        context,
+                        MaterialPageRoute(builder: (context) => MyApp()),
+                            (Route<dynamic> route) => false,
+                      );
                     }, /* to generate a new Sudoku. */
                     child: const Text('Refresh'),
                   ),
@@ -244,7 +238,7 @@ class _MyHomePageState extends State<MyHomePage> {
   }
 }
 
-  // function to check the index
+// function to check the index, and color it.
 bool toBeColored(index){
   List<int> myArray=[
     3,4,5,12,13,14,21,22,23, // 1st block indexes
